@@ -9,30 +9,60 @@ const uint MAX = 1000;
 
 const auto PI  = M_PI;
 
-static_assert(MAX > 0, "Max must be greater than 0");
+namespace myprint{
+	struct f_int{
+		static constexpr int d = 5;
+		static constexpr int p = 0;
+		static constexpr const char *s = " ";
+	};
 
-const myfloat one = 1;
+	struct f_float{
+		static constexpr int d = 2;
+		static constexpr int p = 10;
+		static constexpr const char *s = " ";
+	};
 
-inline void put(std::ostream &os, uint const a){
-	os << std::setprecision(0)  << std::setw(5) << a << ' ';
-}
+	struct f_proc{
+		static constexpr int d = 3;
+		static constexpr int p = 4;
+		static constexpr const char *s = "% ";
+	};
 
-inline void put(std::ostream &os, myfloat const a){
-	os << std::fixed << std::setprecision(10) << std::setw(12) << a << ' ';
-}
+	struct Printer{
+		Printer(std::ostream &os) : os(os){};
+		~Printer(){
+			put();
+		}
 
-struct percent_tag{};
+		template<class F, class T>
+		Printer const &put(T const a) const{
+			os
+				<< std::fixed
+				<< std::setprecision(F::p)
+				<< std::setw(F::d + F::p)
+				<< a
+				<< ' '
+				<< F::s
+			;
 
-inline void put(std::ostream &os, myfloat const a, percent_tag){
-	os << std::fixed << std::setprecision(4) << std::setw(7) << a << " %" << ' ';
-}
+			return *this;
+		}
 
-inline void put(std::ostream &os){
-	os << '\n';
-}
+		Printer const &put() const{
+			os << '\n';
+			return *this;
+		}
+	private:
+		std::ostream &os;
+	};
+} // namespace
 
 int main(){
+	constexpr
+	myfloat one = 1;
 	myfloat sum = 0;
+
+	static_assert(MAX > 0, "Max must be greater than 0");
 
 	for(uint i = 1; i < MAX; ++i){
 		const auto term = one / (i * i);
@@ -47,12 +77,15 @@ int main(){
 		const auto pi = sqrt(6 * sum);
 		const auto diff = (PI - pi) / PI * 100;
 
-		put(std::cout, i			);
-		put(std::cout, term			);
-		put(std::cout, sum			);
-		put(std::cout, pi			);
-		put(std::cout, diff,	percent_tag{}	);
-		put(std::cout				);
+		using namespace myprint;
+
+		Printer{std::cout}
+			.put<f_int	>(i	)
+			.put<f_float	>(term	)
+			.put<f_float	>(sum	)
+			.put<f_float	>(pi	)
+			.put<f_proc	>(diff	)
+		;
 	}
 }
 
